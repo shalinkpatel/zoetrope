@@ -100,10 +100,14 @@ src/
 │   │   ├── mod.rs       # the Claude provider: Entry → Facts (`facts`, `Record`) and the per-file `Stream`; the tool-summary lexicon
 │   │   ├── wire.rs      # Claude's serde model for JSONL entries + meta.json sidecars
 │   │   └── discovery.rs # the ~/.claude/projects layout: cwd sanitization, session / subagent / journal scans, the primitives
-│   └── codex/
-│       ├── mod.rs       # the Codex provider: rollout lines → Facts through a `Stream` that learns its thread from its first line
-│       ├── wire.rs      # Codex's serde model: the envelope, `response_item`, `event_msg` and its `item_completed` items
-│       └── discovery.rs # the ~/.codex/sessions/YYYY/MM/DD layout: rollouts, the head read that classifies them, the primitives
+│   ├── codex/
+│   │   ├── mod.rs       # the Codex provider: rollout lines → Facts through a `Stream` that learns its thread from its first line
+│   │   ├── wire.rs      # Codex's serde model: the envelope, `response_item`, `event_msg` and its `item_completed` items
+│   │   └── discovery.rs # the ~/.codex/sessions/YYYY/MM/DD layout: rollouts, the head read that classifies them, the primitives
+│   └── pi/
+│       ├── mod.rs       # the pi provider: session-file entries → Facts; Fabric spawns (audited `agents.spawn`) and ends (`agents.wait`, `pi-fabric-agent-complete`)
+│       ├── wire.rs      # pi's line model: header, entries, AgentMessage roles and content blocks, Fabric audits, read field by field
+│       └── discovery.rs # the ~/.pi/agent/sessions/--<cwd>--/ layout, plus Fabric exports under .fabric/ joined to their session by run id
 ├── state/
 │   ├── mod.rs     # App: owns the Flow + SessionModel + Timeline + SessionInfo + UI state; handle_ui_event, seek, camera
 │   ├── session.rs # SessionModel: the pure domain model (agents, statuses, tool calls) folded from Facts — knows no format

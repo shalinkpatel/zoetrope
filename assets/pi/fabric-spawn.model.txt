@@ -1,0 +1,28 @@
+  ◌ [main] pi  (idle) — id=main
+      model: deepseek-ai/DeepSeek-V4-Flash-0731
+      tools: 9 (9✓ 0✗ 0⏳)   tokens: 11426
+    ✓ [subagent] dyn-fork  (done) — id=cfe7611b72fa4510b984084634bbe511
+        model: deepseek-ai/DeepSeek-V4.1-Flash
+        tools: 0 (0✓ 0✗ 0⏳)   tokens: 22275
+        ↳ prompt: I would love to start working on incorporating linear attention snapshots into the dynamo router. Can you give me, first, a status on what the current state of this is in our dynamo fork, the upstream dynamo repo, and whether these events …
+        ↳ thought: [thinking redacted]
+    ✓ [subagent] dyn-upstream  (done) — id=c91f974849e548a69473b413bbae26da
+        model: deepseek-ai/DeepSeek-V4.1-Flash
+        tools: 0 (0✓ 0✗ 0⏳)   tokens: 12543
+        ↳ prompt: I would love to start working on incorporating linear attention snapshots into the dynamo router. Can you give me, first, a status on what the current state of this is in our dynamo fork, the upstream dynamo repo, and whether these events …
+        ↳ thought: [thinking redacted]
+    ✓ [subagent] sglang-upstream-events  (done) — id=cc7ede27338b490ea89daa3e09ceb741
+        model: deepseek-ai/DeepSeek-V4.1-Flash
+        tools: 0 (0✓ 0✗ 0⏳)   tokens: 12812
+        ↳ prompt: I would love to start working on incorporating linear attention snapshots into the dynamo router. Can you give me, first, a status on what the current state of this is in our dynamo fork, the upstream dynamo repo, and whether these events …
+        ↳ thought: [thinking redacted]
+    ✓ [subagent] monorepo-patches  (done) — id=27f35c0a1e4f4b60bc0760761436fce2
+        model: zai-org/GLM-5.3-Flash
+        tools: 0 (0✓ 0✗ 0⏳)   tokens: 9047
+        ↳ prompt: I would love to start working on incorporating linear attention snapshots into the dynamo router. Can you give me, first, a status on what the current state of this is in our dynamo fork, the upstream dynamo repo, and whether these events …
+        ↳ thought: [thinking redacted]
+    ✓ [subagent] consumer-path  (done) — id=aa9235e3511441de98a1aa5c631d563e
+        model: zai-org/GLM-5.3-Flash
+        tools: 0 (0✓ 0✗ 0⏳)   tokens: 7066
+        ↳ prompt: I would love to start working on incorporating linear attention snapshots into the dynamo router. Can you give me, first, a status on what the current state of this is in our dynamo fork, the upstream dynamo repo, and whether these events …
+        ↳ thought: [thinking redacted]

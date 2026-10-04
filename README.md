@@ -40,10 +40,11 @@ Built on [ratatui](https://ratatui.rs) and [rataflow](https://github.com/furkank
 | --- | --- | --- | --- | --- |
 | [Claude Code](https://claude.com/claude-code) | `~/.claude/projects/` | ✓ | ✓ | ✓ sessions and subagents |
 | [Codex](https://openai.com/codex/) CLI and desktop app | `~/.codex/sessions/` | ✓ | ✓ | ✓ sessions and subagents |
+| [pi](https://pi.dev) coding agent, with Fabric subagents | `~/.pi/agent/sessions/` | ✓ | ✓ | ✓ sessions (subagents native only) |
 
 zoetrope reads a session from any of its files and tells the formats apart by
-content, so `zoe <file>` works for either, and `zoe <id>` finds a session by id
-across both.
+content, so `zoe <file>` works for any of them, and `zoe <id>` finds a session
+by id across all of them.
 
 ![zoetrope replaying a Codex CLI session as a flow graph](https://raw.githubusercontent.com/furkankly/zoetrope/main/assets/zoetrope-codex.gif)
 
@@ -87,7 +88,7 @@ session running there, so the plugin in
 opens that exact session in `zoe`, without you naming a file or an id.
 
 ```bash
-herdr integration install claude          # and/or codex, so Herdr learns session ids
+herdr integration install claude          # and/or codex or pi, so Herdr learns sessions
 herdr plugin install furkankly/zoetrope/herdr-plugin
 herdr plugin action invoke setup-keys --plugin furkankly.zoetrope
 ```
@@ -109,7 +110,7 @@ zoe <file.jsonl>             # replay a recording from the start (any file of a 
 zoe <id>                     # replay a session by id, or a unique prefix of one
 zoe <file.jsonl> --follow    # open a recording at its live edge
 zoe <file.jsonl> --speed N   # playback speed (default 8.0)
-zoe --provider codex ...     # force the format instead of detecting it from the file
+zoe --provider codex ...     # force the format (claude, codex, pi) instead of detecting it
 zoe inspect <file|id>        # print the session tree and exit (no TUI)
 ```
 

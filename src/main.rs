@@ -66,7 +66,7 @@ USAGE:
     zoe <dir>               follow another project's live session
     zoe <file> --follow     follow a file's live edge instead of replaying
     zoe <file> --speed N    playback speed (default 8.0)
-    zoe --provider <name>   force the format (claude, codex) instead of detecting it
+    zoe --provider <name>   force the format (claude, codex, pi) instead of detecting it
     zoe inspect <file|id>   headless: print the session tree + info
     zoe --version           print the version and exit
 
@@ -81,9 +81,10 @@ fn parse_cli(args: impl Iterator<Item = String>) -> Result<Cli> {
         let v: String = args
             .next()
             .ok_or_else(|| anyhow!("--provider requires a name\n\n{USAGE}"))?;
-        Provider::parse(&v)
-            .map(Some)
-            .ok_or_else(|| anyhow!("unknown provider {v:?}; known: claude, codex"))
+        Provider::parse(&v).map(Some).ok_or_else(|| {
+            let known: Vec<&str> = Provider::ALL.iter().map(|p| p.name()).collect();
+            anyhow!("unknown provider {v:?}; known: {}", known.join(", "))
+        })
     };
 
     // `inspect <file>` is the one distinct (headless) subcommand.

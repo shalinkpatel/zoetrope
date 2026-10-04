@@ -73,6 +73,7 @@ use crate::fact::Statement;
 // browser frontend goes through `tailer::Bundle`.
 pub(crate) mod claude;
 pub(crate) mod codex;
+pub(crate) mod pi;
 pub(crate) mod summary;
 
 #[cfg(test)]
@@ -85,16 +86,18 @@ pub(crate) mod harness;
 pub enum Provider {
     Claude,
     Codex,
+    Pi,
 }
 
 impl Provider {
-    pub const ALL: [Provider; 2] = [Provider::Claude, Provider::Codex];
+    pub const ALL: [Provider; 3] = [Provider::Claude, Provider::Codex, Provider::Pi];
 
     /// The name on the command line and under `assets/`.
     pub fn name(self) -> &'static str {
         match self {
             Provider::Claude => "claude",
             Provider::Codex => "codex",
+            Provider::Pi => "pi",
         }
     }
 
@@ -116,6 +119,7 @@ impl Provider {
 pub enum Stream {
     Claude(claude::Stream),
     Codex(codex::Stream),
+    Pi(pi::Stream),
 }
 
 impl Stream {
@@ -125,13 +129,16 @@ impl Stream {
         match self {
             Stream::Claude(s) => s.push(line),
             Stream::Codex(s) => s.push(line),
+            Stream::Pi(s) => s.push(line),
         }
     }
 }
 
 /// Which provider wrote this text, from its first record. Content, never a
-/// path or an extension: a Codex line carries a `payload`, a Claude line a
-/// `type` at the top level and nothing else this looks at.
+/// path or an extension: a Codex line carries a `payload`, a pi line is its
+/// `session` header or an entry threaded by `parentId` (Claude's is
+/// `parentUuid`), a Claude line a `type` at the top level and nothing else
+/// this looks at.
 pub fn provider_of(head: &str) -> Option<Provider> {
     let line = head.lines().find(|l| !l.trim().is_empty())?;
     let v: serde_json::Value = serde_json::from_str(line.trim()).ok()?;
@@ -139,6 +146,9 @@ pub fn provider_of(head: &str) -> Option<Provider> {
     let kind = obj.get("type").and_then(|t| t.as_str());
     if kind == Some("session_meta") || obj.contains_key("payload") {
         return Some(Provider::Codex);
+    }
+    if kind == Some("session") || obj.contains_key("parentId") {
+        return Some(Provider::Pi);
     }
     kind.map(|_| Provider::Claude)
 }
@@ -340,6 +350,7 @@ impl Provider {
         match self {
             Provider::Claude => claude::discovery::all_paths(scope),
             Provider::Codex => codex::discovery::all_paths(scope),
+            Provider::Pi => pi::discovery::all_paths(scope),
         }
     }
 
@@ -348,6 +359,7 @@ impl Provider {
         match self {
             Provider::Claude => claude::discovery::session_file(path),
             Provider::Codex => codex::discovery::session_file(path),
+            Provider::Pi => pi::discovery::session_file(path),
         }
     }
 
@@ -358,6 +370,7 @@ impl Provider {
         match self {
             Provider::Claude => claude::discovery::related_paths(file),
             Provider::Codex => codex::discovery::related_paths(file),
+            Provider::Pi => pi::discovery::related_paths(file),
         }
     }
 
@@ -366,16 +379,18 @@ impl Provider {
         match self {
             Provider::Claude => claude::discovery::project_key(cwd),
             Provider::Codex => codex::discovery::project_key(cwd),
+            Provider::Pi => pi::discovery::project_key(cwd),
         }
     }
 
     /// [`session_file`](Self::session_file) without a filesystem: the path a
     /// file came with and its first bytes. A Claude file is classified by its
-    /// path, a Codex file by its first line. The browser's way in.
+    /// path, a Codex or pi file by its first line. The browser's way in.
     pub fn session_file_from(self, path: &Path, head: &str) -> Option<SessionFile> {
         match self {
             Provider::Claude => claude::discovery::classify_path(path, SystemTime::UNIX_EPOCH),
             Provider::Codex => codex::discovery::classify_head(path, head, SystemTime::UNIX_EPOCH),
+            Provider::Pi => pi::discovery::classify_head(path, head, SystemTime::UNIX_EPOCH),
         }
     }
 
@@ -384,6 +399,10 @@ impl Provider {
         match self {
             Provider::Claude => Stream::Claude(claude::discovery::stream_for(file)),
             Provider::Codex => Stream::Codex(codex::Stream::new()),
+            Provider::Pi => Stream::Pi(match file.role {
+                FileRole::Root => pi::Stream::new(),
+                _ => pi::Stream::child(),
+            }),
         }
     }
 
@@ -393,7 +412,7 @@ impl Provider {
     pub fn sidecar(self, file: &SessionFile, text: &str) -> Option<Statement> {
         match self {
             Provider::Claude => claude::discovery::sidecar(file, text),
-            Provider::Codex => None,
+            Provider::Codex | Provider::Pi => None,
         }
     }
 }
@@ -582,6 +601,14 @@ mod tests {
                 r#"{"type":"user","uuid":"u","agentId":"a1","message":{"role":"user","content":"x"}}"#
             ),
             Some(Provider::Claude)
+        );
+        assert_eq!(
+            provider_of(r#"{"type":"session","version":3,"id":"01a0","timestamp":"t","cwd":"/p"}"#),
+            Some(Provider::Pi)
+        );
+        assert_eq!(
+            provider_of(r#"{"type":"message","id":"a","parentId":null,"message":{"role":"user"}}"#),
+            Some(Provider::Pi)
         );
         assert_eq!(provider_of(r#"{"agentType":"guide"}"#), None);
         assert_eq!(provider_of("not json"), None);

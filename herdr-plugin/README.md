@@ -2,13 +2,13 @@
 
 [Herdr](https://herdr.dev) runs coding agents in panes and knows which session
 each pane is running. This plugin asks it, then opens that session in `zoe` as
-a live flow graph, without you naming a file or an id. Claude Code and Codex
-panes both work.
+a live flow graph, without you naming a file or an id. Claude Code, Codex and
+pi panes all work.
 
 ## Installation
 
 ```bash
-herdr integration install claude          # and/or: herdr integration install codex
+herdr integration install claude          # and/or: herdr integration install codex (or pi)
 herdr plugin install furkankly/zoetrope/herdr-plugin
 herdr plugin action invoke setup-keys --plugin furkankly.zoetrope
 ```
@@ -72,7 +72,9 @@ The pane says why and waits for you to press enter, rather than closing on you:
 | Herdr reports | What you see |
 | --- | --- |
 | an id for a `claude` or `codex` pane | the graph |
-| an agent but no session id | how to install the integration, and why the agent has to be restarted |
+| a session file path for a `pi` pane | the graph |
+| a `pi` path whose file does not exist yet | a line saying to send the agent a message first |
+| an agent but no session | how to install the integration, and why the agent has to be restarted |
 | no agent in the pane | a line saying to focus an agent pane |
 | an agent zoetrope does not read | the same, naming the agent |
 

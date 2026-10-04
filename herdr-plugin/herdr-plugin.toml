@@ -12,7 +12,7 @@ name = "zoetrope"
 # hand-edited label with no reader. The one version that gates an install is
 # min_herdr_version below; the one that describes what `zoe` must be able to do
 # lives in herdr/ensure-zoe.sh.
-version = "0.1.0"
+version = "0.1.1"
 description = "Watch the focused agent's session as a live flow graph."
 platforms = ["macos", "linux"]
 

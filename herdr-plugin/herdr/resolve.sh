@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Print "<agent> <session-id>" for the pane the plugin was invoked from, or
-# exit non-zero with the reason on stderr.
+# Print "<agent> <session>" for the pane the plugin was invoked from, where
+# <session> is a session id or a transcript path, or exit non-zero with the
+# reason on stderr.
 #
 # The pane id comes from `focused_pane_id` in HERDR_PLUGIN_CONTEXT_JSON, never
 # from HERDR_PANE_ID: in a pane command HERDR_PANE_ID is the plugin's own new
@@ -11,8 +12,10 @@
 # Herdr's Claude Code and Codex integrations report the native session id from
 # a SessionStart hook (`pane.report_agent_session`), so `pane.get` carries
 # `agent_session: {source, agent, kind: "id", value}` for both. That pair is
-# all zoe needs. Nothing is guessed from the working directory; when Herdr has
-# no id, the caller says so.
+# all zoe needs. Its pi integration reports the session file itself instead,
+# `agent_session: {agent: "pi", kind: "path", value: "<absolute .jsonl>"}`,
+# which zoe opens the same way. Nothing is guessed from the working directory;
+# when Herdr has neither, the caller says so.
 set -euo pipefail
 
 herdr="${HERDR_BIN_PATH:-herdr}"
@@ -35,17 +38,24 @@ kind=$(printf  '%s' "$pane" | jq -r '.agent_session.kind  // empty')
 value=$(printf '%s' "$pane" | jq -r '.agent_session.value // empty')
 
 case "$agent" in
-  claude | codex) ;;
-  "") echo "pane $pane_id has no agent: focus a Claude Code or Codex pane" >&2; exit 1 ;;
-  *)  echo "agent '$agent' in pane $pane_id is not one zoe reads (Claude Code and Codex)" >&2; exit 1 ;;
+  claude | codex | pi) ;;
+  "") echo "pane $pane_id has no agent: focus a Claude Code, Codex or pi pane" >&2; exit 1 ;;
+  *)  echo "agent '$agent' in pane $pane_id is not one zoe reads (Claude Code, Codex and pi)" >&2; exit 1 ;;
 esac
 
 case "$kind" in
   id) ;;
+  path)
+    case "$value" in
+      /*) ;;
+      *) echo "Herdr reports a session path for this $agent pane that is not absolute: '$value'" >&2; exit 1 ;;
+    esac
+    # pi creates the file with the session's first message, not at startup.
+    [ -f "$value" ] || { echo "the session file Herdr reports for this $agent pane does not exist yet: $value (send the agent a message first)" >&2; exit 1; } ;;
   "") cat >&2 <<MSG
-Herdr has no session id for this $agent pane.
+Herdr has no session for this $agent pane.
 
-  The id comes from the agent's SessionStart hook, which fires only when a
+  It comes from the agent's session-start hook, which fires only when a
   session begins. So: install the integration if it is missing, then start the
   agent in that pane again. A session that was already running when the
   integration was installed never reports one.
@@ -53,7 +63,7 @@ Herdr has no session id for this $agent pane.
     herdr integration install $agent    (herdr integration status lists them)
 MSG
      exit 1 ;;
-  *)  echo "Herdr reports a $kind for this $agent pane, and the plugin expects an id" >&2; exit 1 ;;
+  *)  echo "Herdr reports a $kind for this $agent pane, and the plugin expects an id or a path" >&2; exit 1 ;;
 esac
 
 printf '%s %s\n' "$agent" "$value"
